@@ -1,0 +1,53 @@
+bucket.list:
+  path: '/bucket'
+  defaults:
+    _controller: '\Drupal\bucket\Controller\BucketListController::view'
+    _title: 'Bucket – Recent Files'
+  requirements:
+    _permission: 'view bucket list'
+
+bucket.upload:
+  path: '/bucket/upload'
+  defaults:
+    _form: '\Drupal\bucket\Form\BucketUploadForm'
+    _title: 'Upload to Bucket'
+  requirements:
+    _permission: 'upload bucket files'
+
+bucket.my:
+  path: '/bucket/my'
+  defaults:
+    _controller: '\Drupal\bucket\Controller\BucketUserController::view'
+    _title: 'My Bucket Files'
+  requirements:
+    _permission: 'upload bucket files'
+
+bucket.download:
+  path: '/bucket/d/{file}'
+  defaults:
+    _controller: '\Drupal\bucket\Controller\BucketDownloadController::download'
+  requirements:
+    _access: 'TRUE'
+  options:
+    parameters:
+      file:
+        type: 'entity:file'
+
+bucket.delete:
+  path: '/bucket/delete/{file}'
+  defaults:
+    _controller: '\Drupal\bucket\Controller\BucketDeleteController::delete'
+  requirements:
+    _permission: 'upload bucket files'
+  options:
+    parameters:
+      file:
+        type: 'entity:file'
+
+bucket.settings:
+  path: '/admin/config/media/bucket'
+  defaults:
+    _form: '\Drupal\bucket\Form\BucketSettingsForm'
+    _title: 'Bucket settings'
+  requirements:
+    _permission: 'administer site configuration'

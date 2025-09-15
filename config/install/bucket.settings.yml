@@ -1,0 +1,10 @@
+ttl_hours: 48
+delete_on_download: false
+use_blocklist: true
+allowed_extensions: ''
+blocked_extensions: 'php php3 php4 php5 phtml phar pl cgi sh exe bat cmd com js mjs jsp asp aspx'
+permissive_extensions: '7z aac ai aiff apk app arc arj asm avi bin blend bz2 cab cgm csv dae db dcm dll dmg doc docx dxf epub flac flv gz gzip heic heif ico jar jfif jpeg jpg json kicad kicad_pcb kmz kml log m4a m4v markdown md midi mkv mng mov mp3 mp4 mpeg mpg nes obj odp ods odt oga ogg ogv opus pages pdf plist png ppt pptx ps psd rar raw rtf scad skp step stl svg tar tgz tif tiff txt wav webm webp wmf xcf xls xlsx xml yaml yml zip'
+max_filesize_mb: 50
+list_page_limit: 500
+description: |
+  This page is a temporary file drop for MakeHaven members. Files are visible to everyone at MakeHaven. Files older than [ttl_hours] hours are auto-deleted. [delete_on_download] delete-on-download is enabled.

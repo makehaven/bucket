@@ -1,0 +1,6 @@
+bucket.settings:
+  title: 'Bucket settings'
+  description: 'Configure file bucket.'
+  route_name: bucket.settings
+  parent: system.admin_config_media
+  weight: 100

@@ -1,0 +1,7 @@
+services:
+  bucket.expirer:
+    class: Drupal\bucket\BucketExpirer
+    arguments: ['@entity_type.manager', '@config.factory', '@file_system', '@logger.channel.bucket', '@database', '@datetime.time']
+  logger.channel.bucket:
+    parent: logger.channel_base
+    arguments: ['bucket']

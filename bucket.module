@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Cron cleanup and validators for bucket files.
+ */
+
+use Drupal\file\FileInterface;
+
+/**
+ * Implements hook_cron().
+ */
+function bucket_cron() {
+  \Drupal::service('bucket.expirer')->expire();
+}
+
+/**
+ * Custom validator: blocklisted extensions.
+ */
+function bucket_validate_disallowed_extensions(FileInterface $file, $blocked) {
+  $blocked = preg_split('/\s+/', trim((string) $blocked), -1, PREG_SPLIT_NO_EMPTY);
+  if (!$blocked) {
+    return [];
+  }
+  $name = (string) $file->getFilename();
+  $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION) ?: '');
+  if ($ext && in_array($ext, array_map('strtolower', $blocked), TRUE)) {
+    return [t('The %ext extension is not allowed for security reasons.', ['%ext' => $ext])];
+  }
+  return [];
+}

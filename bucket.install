@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Bucket.
+ */
+
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_schema().
+ */
+function bucket_schema() {
+  $schema['bucket_item'] = [
+    'description' => 'Tracks bucket uploads and downloads.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+      ],
+      'fid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'downloaded' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'downloaded_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'fid' => ['fid'],
+      'uid' => ['uid'],
+      'created' => ['created'],
+      'downloaded' => ['downloaded'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function bucket_install() {
+  $link = Link::fromTextAndUrl('Bucket settings', Url::fromRoute('bucket.settings'))->toString();
+  \Drupal::messenger()->addStatus(t('Configure the module at @link. Upload at /bucket/upload.', ['@link' => $link]));
+}

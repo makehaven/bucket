@@ -1,0 +1,6 @@
+{
+    "name": "makehaven/bucket",
+    "type": "drupal-custom-module",
+    "description": "Quick file tranfer for members",
+    "license": "GPL-2.0-or-later"
+}

@@ -1,0 +1,19 @@
+upload bucket files:
+  title: 'Upload bucket files'
+  description: 'Allow users to upload files to the bucket'
+  restrict: false
+
+view bucket list:
+  title: 'View bucket list'
+  description: 'View the public list of recent bucket files'
+  restrict: false
+
+delete own bucket file:
+  title: 'Delete own bucket file'
+  description: 'Allow users to delete the files they uploaded'
+  restrict: false
+
+delete any bucket file:
+  title: 'Delete any bucket file'
+  description: 'Admins can delete any user’s bucket file'
+  restrict: true
