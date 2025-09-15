@@ -32,7 +32,7 @@ class BucketUploadForm extends FormBase {
     ]);
     $form['bucket_description'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="bucket-desc">' . nl2br(htmlspecialchars($desc)) . '</div>',
+      '#markup' => '<div class="bucket-desc">' . nl2br($desc) . '</div>',
     ];
 
     $max_mb = (int) $cfg->get('max_filesize_mb') ?: 20;

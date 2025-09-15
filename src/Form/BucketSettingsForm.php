@@ -64,10 +64,11 @@ class BucketSettingsForm extends ConfigFormBase {
     ];
 
     $form['permissive_extensions'] = [
-      '#type' => 'textfield',
+      '#type' => 'textarea',
       '#title' => $this->t('Permissive extensions used in blocklist mode'),
       '#default_value' => $cfg->get('permissive_extensions'),
-      '#description' => $this->t('Large inclusive list used to override Drupal defaults so common formats upload cleanly. Final decision still applies the blocked extensions.'),
+      '#description' => $this->t("In blocklist mode, Drupal's default file validation is too restrictive. To work around this, we must provide a large list of 'allowed' extensions here to override the default, and then this module can apply the smaller blocklist from the setting above. It's recommended to keep this populated with the default list of common, safe file types."),
+      '#rows' => 5,
       '#states' => [
         'visible' => [
           ':input[name="use_blocklist"]' => ['checked' => TRUE],
