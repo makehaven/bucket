@@ -39,15 +39,22 @@ class BucketUploadForm extends FormBase {
     $use_blocklist = (bool) $cfg->get('use_blocklist');
     $allowed = trim((string) $cfg->get('allowed_extensions'));
     $blocked = trim((string) $cfg->get('blocked_extensions'));
-    // NOTE: We intentionally do NOT set file_validate_extensions in blocklist mode.
-    // Some stacks still apply a hidden allowlist causing svg/zip to fail; our custom
-    // blocklist validator is enough and safer for your use case.
+    $permissive = trim((string) $cfg->get('permissive_extensions'));
 
+    // NOTE: In blocklist mode, we must apply a broad file_validate_extensions in
+    // addition to our custom validator. Some stacks apply a hidden allowlist
+    // causing svg/zip to fail; our custom blocklist validator is not enough.
     $validators = [
       'file_validate_size' => [$max_mb * 1024 * 1024],
     ];
 
     if ($use_blocklist) {
+      // First, set a permissive filter, since some Drupal stacks have a default
+      // allowlist that is too restrictive for our use-case.
+      if ($permissive !== '') {
+        $validators['file_validate_extensions'] = [$permissive];
+      }
+      // Next, apply our custom blocklist validator.
       if ($blocked !== '') {
         $validators['bucket_validate_disallowed_extensions'] = [$blocked];
       }
