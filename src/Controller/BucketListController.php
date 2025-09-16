@@ -22,7 +22,7 @@ class BucketListController extends ControllerBase {
     ]);
     $build['bucket_description'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="bucket-desc">' . nl2br(htmlspecialchars($desc)) . '</div>',
+      '#markup' => '<div class="bucket-desc">' . nl2br($desc) . '</div>',
     ];
 
     // Upload button at top.
