@@ -18,7 +18,7 @@ bucket.settings:
       type: string
       label: 'Blocked file extensions (space-separated)'
     permissive_extensions:
-      type: string
+      type: text
       label: 'Permissive allowlist used to override Drupal defaults in blocklist mode'
     max_filesize_mb:
       type: integer
