@@ -111,6 +111,21 @@ class BucketListController extends ControllerBase {
       '#empty' => $this->t('No files yet.'),
     ];
 
+    // Add no-index to the page.
+    $build['#attached']['html_head'][] = [
+      [
+        '#tag' => 'meta',
+        '#attributes' => [
+          'name' => 'robots',
+          'content' => 'noindex, nofollow',
+        ],
+      ],
+      'bucket_no_index',
+    ];
+
+    // Disable caching on this page.
+    $build['#cache']['max-age'] = 0;
+
     return $build;
   }
 
