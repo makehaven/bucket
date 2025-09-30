@@ -7,6 +7,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\file\Entity\File;
 use Drupal\Core\Url;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Cache\Cache;
 
 class BucketUploadForm extends FormBase {
 
@@ -23,6 +26,8 @@ class BucketUploadForm extends FormBase {
       $destination,
       FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS
     );
+
+    $form['#attached']['library'][] = 'bucket/autoupload';
 
     // Description
     $desc = (string) $cfg->get('description');
@@ -41,20 +46,14 @@ class BucketUploadForm extends FormBase {
     $blocked = trim((string) $cfg->get('blocked_extensions'));
     $permissive = trim((string) $cfg->get('permissive_extensions'));
 
-    // NOTE: In blocklist mode, we must apply a broad file_validate_extensions in
-    // addition to our custom validator. Some stacks apply a hidden allowlist
-    // causing svg/zip to fail; our custom blocklist validator is not enough.
     $validators = [
       'file_validate_size' => [$max_mb * 1024 * 1024],
     ];
 
     if ($use_blocklist) {
-      // First, set a permissive filter, since some Drupal stacks have a default
-      // allowlist that is too restrictive for our use-case.
       if ($permissive !== '') {
         $validators['file_validate_extensions'] = [$permissive];
       }
-      // Next, apply our custom blocklist validator.
       if ($blocked !== '') {
         $validators['bucket_validate_disallowed_extensions'] = [$blocked];
       }
@@ -67,19 +66,22 @@ class BucketUploadForm extends FormBase {
 
     $form['files'] = [
       '#type' => 'managed_file',
-      '#title' => $this->t('Select files'),
+      '#title' => $this->t('Select and upload files'),
+      '#description' => $this->t('Your files will be uploaded automatically after you select them.'),
       '#multiple' => TRUE,
       '#upload_location' => $destination,
       '#upload_validators' => $validators,
       '#required' => TRUE,
-      '#description' => $use_blocklist
-        ? $this->t('Max @mb MB each. Blocked: @ext', ['@mb' => $max_mb, '@ext' => ($blocked ?: $this->t('(none)'))])
-        : $this->t('Max @mb MB each. Allowed: @ext', ['@mb' => $max_mb, '@ext' => ($allowed ?: $this->t('(all)'))]),
+      '#after_build' => ['::afterBuildUpload'],
     ];
 
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Upload'),
+      '#attributes' => [
+        'class' => ['visually-hidden'],
+        'data-bucket-submit' => 'true',
+      ],
     ];
 
     $form['links'] = [
@@ -100,6 +102,19 @@ class BucketUploadForm extends FormBase {
     ];
 
     return $form;
+  }
+
+  public static function afterBuildUpload(array $element, FormStateInterface $form_state) {
+    $element['upload_button']['#ajax'] = [
+      'callback' => '::triggerAutosubmit',
+    ];
+    return $element;
+  }
+
+  public function triggerAutosubmit(array &$form, FormStateInterface $form_state) {
+    $response = new AjaxResponse();
+    $response->addCommand(new InvokeCommand(NULL, 'bucketAutosubmit'));
+    return $response;
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -123,6 +138,9 @@ class BucketUploadForm extends FormBase {
           ])->execute();
       }
     }
+
+    // Invalidate cache tags to ensure the /bucket/my page is updated.
+    Cache::invalidateTags(['file_list', 'user:' . $uid]);
 
     $this->messenger()->addStatus($this->t('Uploaded @count file(s).', ['@count' => count($fids)]));
     $form_state->setRedirect('bucket.my');

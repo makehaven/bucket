@@ -71,6 +71,12 @@ class BucketUserController extends ControllerBase {
       '#header' => $header,
       '#rows' => $rows,
       '#empty' => $this->t('No files yet.'),
+      '#cache' => [
+        'tags' => [
+          'file_list',
+          'user:' . $uid,
+        ],
+      ],
     ];
 
     return $build;
