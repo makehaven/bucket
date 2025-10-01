@@ -11,6 +11,7 @@ class BucketListController extends ControllerBase {
   public function view() {
     $cfg = $this->config('bucket.settings');
     $limit = (int) ($cfg->get('list_page_limit') ?? 500);
+    $account = $this->currentUser();
 
     $build = [];
 
@@ -25,12 +26,26 @@ class BucketListController extends ControllerBase {
       '#markup' => '<div class="bucket-desc">' . nl2br($desc) . '</div>',
     ];
 
-    // Upload button at top.
-    $build['upload_link'] = [
+    // Page links.
+    $links = [];
+    $links['upload'] = [
       '#type' => 'link',
       '#title' => $this->t('Upload files'),
       '#url' => Url::fromRoute('bucket.upload'),
       '#attributes' => ['class' => ['button', 'button--primary']],
+    ];
+    if ($account->isAuthenticated()) {
+      $links['my'] = [
+        '#type' => 'link',
+        '#title' => $this->t('My files'),
+        '#url' => Url::fromRoute('bucket.my'),
+        '#attributes' => ['class' => ['button']],
+      ];
+    }
+    $build['links'] = [
+      '#theme' => 'item_list',
+      '#items' => $links,
+      '#attributes' => ['class' => ['bucket-links']],
     ];
 
     $rows = [];
@@ -53,7 +68,6 @@ class BucketListController extends ControllerBase {
     $result = $q->execute();
 
     $date = \Drupal::service('date.formatter');
-    $account = $this->currentUser();
 
     foreach ($result as $r) {
       $file = File::load($r->fid);

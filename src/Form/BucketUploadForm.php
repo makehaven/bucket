@@ -7,6 +7,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\file\Entity\File;
 use Drupal\Core\Url;
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Render\Markup;
 
 class BucketUploadForm extends FormBase {
 
@@ -41,20 +43,14 @@ class BucketUploadForm extends FormBase {
     $blocked = trim((string) $cfg->get('blocked_extensions'));
     $permissive = trim((string) $cfg->get('permissive_extensions'));
 
-    // NOTE: In blocklist mode, we must apply a broad file_validate_extensions in
-    // addition to our custom validator. Some stacks apply a hidden allowlist
-    // causing svg/zip to fail; our custom blocklist validator is not enough.
     $validators = [
       'file_validate_size' => [$max_mb * 1024 * 1024],
     ];
 
     if ($use_blocklist) {
-      // First, set a permissive filter, since some Drupal stacks have a default
-      // allowlist that is too restrictive for our use-case.
       if ($permissive !== '') {
         $validators['file_validate_extensions'] = [$permissive];
       }
-      // Next, apply our custom blocklist validator.
       if ($blocked !== '') {
         $validators['bucket_validate_disallowed_extensions'] = [$blocked];
       }
@@ -67,19 +63,19 @@ class BucketUploadForm extends FormBase {
 
     $form['files'] = [
       '#type' => 'managed_file',
-      '#title' => $this->t('Select files'),
+      '#title' => $this->t('Select and upload files'),
+      '#description' => $this->t('Files upload as soon as you select them. When ready, press "Upload queued files" to finish.'),
       '#multiple' => TRUE,
       '#upload_location' => $destination,
       '#upload_validators' => $validators,
       '#required' => TRUE,
-      '#description' => $use_blocklist
-        ? $this->t('Max @mb MB each. Blocked: @ext', ['@mb' => $max_mb, '@ext' => ($blocked ?: $this->t('(none)'))])
-        : $this->t('Max @mb MB each. Allowed: @ext', ['@mb' => $max_mb, '@ext' => ($allowed ?: $this->t('(all)'))]),
+      '#after_build' => ['::afterBuildUpload'],
     ];
 
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Upload'),
+      '#value' => $this->t('Upload queued files'),
+      '#button_type' => 'primary',
     ];
 
     $form['links'] = [
@@ -102,13 +98,71 @@ class BucketUploadForm extends FormBase {
     return $form;
   }
 
+  public static function afterBuildUpload(array $element, FormStateInterface $form_state) {
+    $element['#attributes']['class'][] = 'bucket-managed-file';
+
+    if (isset($element['upload']['#attributes']['class'])) {
+      $element['upload']['#attributes']['class'][] = 'bucket-managed-file__input';
+    }
+    else {
+      $element['upload']['#attributes']['class'] = ['bucket-managed-file__input'];
+    }
+
+    // Simplify the UI by removing manual removal controls.
+    unset($element['remove_button']);
+
+    // Reformat the uploaded file list to show read-only entries.
+    foreach ($element as $key => &$child) {
+      if (strpos($key, 'file_') === 0 && isset($child['selected'])) {
+        $markup = $child['selected']['#title'] ?? '';
+        $child['filename'] = [
+          '#type' => 'markup',
+          '#markup' => Markup::create('<div class="bucket-file-list__item">' . $markup . '</div>'),
+        ];
+        unset($child['selected']);
+      }
+    }
+
+    unset($child);
+
+    return $element;
+  }
+
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $fids = $form_state->getValue('files') ?? [];
-    $uid = (int) $this->currentUser()->id();
+    $count = static::completeUpload($fids);
+
+    $this->messenger()->addStatus($this->formatPlural($count, 'Uploaded 1 file.', 'Uploaded @count files.', ['@count' => $count]));
+    $form_state->setRedirect('bucket.my');
+  }
+
+  /**
+   * Finalizes uploaded files by persisting records and marking them permanent.
+   */
+  protected static function completeUpload(array $fids): int {
+    if (empty($fids)) {
+      return 0;
+    }
+
+    $uid = (int) \Drupal::currentUser()->id();
     $time = \Drupal::time()->getRequestTime();
     $db = \Drupal::database();
+    $saved = 0;
 
-    foreach ($fids as $fid) {
+    $existing = $db->select('bucket_item', 'bi')
+      ->fields('bi', ['fid'])
+      ->condition('fid', $fids, 'IN')
+      ->execute()
+      ->fetchCol();
+    $existing = array_map('intval', $existing);
+
+    $pending = array_diff($fids, $existing);
+
+    if (empty($pending)) {
+      return 0;
+    }
+
+    foreach ($pending as $fid) {
       if ($file = File::load($fid)) {
         $file->setPermanent();
         $file->save();
@@ -121,11 +175,17 @@ class BucketUploadForm extends FormBase {
             'downloaded' => 0,
             'downloaded_at' => NULL,
           ])->execute();
+
+        $saved++;
       }
     }
 
-    $this->messenger()->addStatus($this->t('Uploaded @count file(s).', ['@count' => count($fids)]));
-    $form_state->setRedirect('bucket.my');
+    // Invalidate cache tags to ensure the /bucket/my page is updated.
+    if ($saved > 0) {
+      Cache::invalidateTags(['file_list', 'user:' . $uid]);
+    }
+
+    return $saved;
   }
 
 }

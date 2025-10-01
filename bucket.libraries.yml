@@ -1,0 +1,6 @@
+autoupload:
+  js:
+    js/autoupload.js: {}
+  dependencies:
+    - core/drupal.ajax
+    - core/jquery
