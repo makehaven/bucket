@@ -3,6 +3,7 @@
 namespace Drupal\bucket\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\StringTranslation\ByteSizeMarkup;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 
@@ -112,7 +113,7 @@ class BucketListController extends ControllerBase {
           ],
         ],
         $owner_name,
-        format_size((int) $r->filesize),
+        ByteSizeMarkup::create((int) $r->filesize),
         $date->formatInterval(\Drupal::time()->getRequestTime() - (int) $r->created),
         ['data' => ['#theme' => 'item_list', '#items' => $actions, '#attributes' => ['class' => ['bucket-actions']]]],
       ];

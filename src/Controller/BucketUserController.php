@@ -4,6 +4,7 @@ namespace Drupal\bucket\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Drupal\Core\StringTranslation\ByteSizeMarkup;
 use Drupal\file\Entity\File;
 
 class BucketUserController extends ControllerBase {
@@ -54,7 +55,7 @@ class BucketUserController extends ControllerBase {
             '#url' => $download_url,
           ],
         ],
-        format_size((int) $r->filesize),
+        ByteSizeMarkup::create((int) $r->filesize),
         $date->formatInterval(\Drupal::time()->getRequestTime() - (int) $r->created),
         [
           'data' => [
