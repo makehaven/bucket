@@ -2,7 +2,8 @@ name: Bucket
 type: module
 description: Simple member file bucket with public listing, download tracking, and auto-delete.
 core_version_requirement: ^10 || ^11
-package: MakeHaven
+package: Makerspace
 dependencies:
   - drupal:file
   - drupal:user
+configure: bucket.settings
