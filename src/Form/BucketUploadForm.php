@@ -44,21 +44,31 @@ class BucketUploadForm extends FormBase {
     $permissive = trim((string) $cfg->get('permissive_extensions'));
 
     $validators = [
-      'file_validate_size' => [$max_mb * 1024 * 1024],
+      'FileSizeLimit' => ['fileLimit' => $max_mb * 1024 * 1024],
     ];
 
     if ($use_blocklist) {
       if ($permissive !== '') {
-        $validators['file_validate_extensions'] = [$permissive];
+        $validators['FileExtension'] = ['extensions' => $permissive];
       }
-      if ($blocked !== '') {
-        $validators['bucket_validate_disallowed_extensions'] = [$blocked];
+      else {
+        // Allow all extensions in blocklist mode unless restricted by the
+        // disallowed list below.
+        $validators['FileExtension'] = [];
       }
     }
     else {
       if ($allowed !== '') {
-        $validators['file_validate_extensions'] = [$allowed];
+        $validators['FileExtension'] = ['extensions' => $allowed];
       }
+      else {
+        // Explicitly allow all extensions when the allowlist is blank.
+        $validators['FileExtension'] = [];
+      }
+    }
+
+    if ($use_blocklist && $blocked !== '') {
+      $validators['BucketDisallowedExtension'] = ['blocked' => $blocked];
     }
 
     $form['files'] = [
