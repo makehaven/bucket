@@ -5,6 +5,7 @@ namespace Drupal\bucket\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\file\Entity\File;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BucketDeleteController extends ControllerBase {
 
@@ -16,7 +17,7 @@ class BucketDeleteController extends ControllerBase {
     $can_own = $account->hasPermission('delete own bucket file') && (int) $account->id() === $owner_id;
 
     if (!$can_any && !$can_own) {
-      throw $this->createAccessDeniedException();
+      throw new AccessDeniedHttpException();
     }
 
     $fid = (int) $file->id();

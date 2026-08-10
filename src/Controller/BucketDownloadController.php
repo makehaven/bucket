@@ -6,13 +6,14 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\file\Entity\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class BucketDownloadController extends ControllerBase {
 
   public function download(File $file) {
     $uri = $file->getFileUri();
     if (strpos($uri, 'public://bucket/') !== 0) {
-      throw $this->createNotFoundException();
+      throw new NotFoundHttpException();
     }
 
     \Drupal::database()->update('bucket_item')
@@ -25,7 +26,7 @@ class BucketDownloadController extends ControllerBase {
 
     $handle = @fopen($uri, 'rb');
     if (!$handle) {
-      throw $this->createNotFoundException();
+      throw new NotFoundHttpException();
     }
 
     $response = new StreamedResponse(function () use ($handle) {
