@@ -3,7 +3,7 @@ delete_on_download: false
 use_blocklist: true
 allowed_extensions: ''
 blocked_extensions: 'ade adp apk app asp aspx bat bin cab cgi cmd com cpl crt dll dmg exe fxp gadget hta inf ins isp jar js jse jsp lib lnk mde mdt m'
-permissive_extensions: '7z aac ai aiff apk app arc arj asm avi bin blend bz2 cab cgm csv dae db dcm dll dmg doc docx dxf epub flac flv gz gzip heic heif ico jar jfif jpeg jpg json kicad kicad_pcb kmz kml log m4a m4v markdown md midi mkv mng mov mp3 mp4 mpeg mpg nes obj odp ods odt oga ogg ogv opus pages pdf plist png ppt pptx ps psd rar raw rtf scad skp step stl svg tar tgz tif tiff txt wav webm webp wmf xcf xls xlsx xml yaml yml zip'
+permissive_extensions: '7z aac ai aiff apk app arc arj asm avi bin blend bz2 cab cgm csv dae db dcm dll dmg doc docx dxf epub f3d flac flv gz gzip heic heif ico jar jfif jpeg jpg json kicad kicad_pcb kmz kml log m4a m4v markdown md midi mkv mng mov mp3 mp4 mpeg mpg nes obj odp ods odt oga ogg ogv opus pages pdf plist png ppt pptx ps psd rar raw rtf scad skp step stl svg tar tgz tif tiff txt wav webm webp wmf xcf xls xlsx xml yaml yml zip'
 max_filesize_mb: 50
 list_page_limit: 500
 description: |
